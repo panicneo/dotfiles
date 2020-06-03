@@ -1,0 +1,1 @@
+alias pv 'conda activate'
