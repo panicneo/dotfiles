@@ -3,3 +3,6 @@ set ideajoin
 set surround
 set commentary
 set easymotion
+
+set visualbell
+set noerrorbells

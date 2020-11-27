@@ -14,6 +14,9 @@ set -x EDITOR nvim
 set -x SSH_KEY_PATH ~/.ssh/rsa_id
 set -x PATH /usr/local/sbin $PATH
 
+set -x PATH $HOME/.krew/bin $PATH
+
+
 # python
 set -x PATH $CONDA_PREFIX/bin $PATH
 
@@ -27,6 +30,10 @@ set -x PATH $PATH $GOPATH/bin
 source $HOME/.cargo/env
 export RUST_SRC_PATH=~/.rustup/toolchains/stable-x86_64-apple-darwin/lib/rustlib/src/rust/src
 
+# homebrew
+set -x HOMEBREW_NO_AUTO_UPDATE 1
+
+
 # =============================================
 #       alias
 # =============================================
@@ -34,6 +41,7 @@ abbr -a vi "nvim"
 abbr -a glm "git log --no-merges --color --date=format:'%Y-%m-%d %H:%M:%S' --author='pengfei\|itsneo1990' --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Cblue %s %Cgreen(%cd) %C(bold blue)<%an>%Creset' --abbrev-commit"
 abbr -a glms "git log --no-merges --color --stat --date=format:'%Y-%m-%d %H:%M:%S' --author='pengfei\|itsneo1990' --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Cblue %s %Cgreen(%cd) %C(bold blue)<%an>%Creset' --abbrev-commit"
 abbr -a t 'tmux attach -t NEO || tmux new -s NEO'
+abbr -a k "kubectl"
 
 # exa
 if command -v exa > /dev/null
@@ -54,10 +62,12 @@ end
 # =============================================
 #       functions
 # =============================================
-abbr -a hp proxychains4
-
 function pp
-    set -lx ALL_PROXY 'socks5://127.0.0.1:1086';
+    # set -lx HTTP_PROXY 'http://127.0.0.1:1087';
+    # set -lx HTTPS_PROXY 'http://127.0.0.1:1087';
+    set -lx HTTP_PROXY 'http://10.9.8.2:3128';
+    set -lx HTTPS_PROXY 'http://10.9.8.2:3128';
+    set -lx ALL_PROXY 'http://10.9.8.2:3128';
     $argv
 end
 
@@ -80,30 +90,17 @@ function gitt
             --bind="alt-y:execute:$commit_hash | xclip -selection clipboard"
 end
 
+# =============================================
+#       K8s
+# =============================================
+alias k-pc-k8s="export KUBECONFIG=/Users/itsneo1990/.kube/pc-k8s"
 
-function db
-    set -l default_db_name "yobee_agent"
 
-    if test $argv[2]
-        set dbname $argv[2]
-    else
-        set dbname $default_db_name
-    end
-    switch $argv[1]
-        case "test"
-            set host 10.10.10.50
-            set port 3306
-            set user hicar
-            set password yX455wCcqusdWFwE 
-        case "dev"
-            set host 127.0.0.1
-            set port 3307
-            set user db_root
-            set password u8vG3qHKoeg6TB5zKfI75SMhV28sFuCA 
-    end
-    echo "connecting to $dbname..."
-    mycli -h$host -P$port -u$user -p$password $dbname
+# snake case to camelcase
+function camelcase
+    perl -pe 's#(_|^)(.)#\u$2#g'
 end
+
 
 function sudo --description "Replacement for Bash 'sudo !!' command to run last command using sudo."
     if test "$argv" = !!
@@ -111,6 +108,27 @@ function sudo --description "Replacement for Bash 'sudo !!' command to run last 
 else
     command sudo $argv
     end
+end
+
+function clean_git
+    echo "Clean all git commit"
+    git checkout --orphan latest_branch
+    git add -A
+    git commit -am "Delete all previous commit"
+    git branch -D master
+    git branch -m master
+
+    echo "Cleanup refs and logs"
+    rm -Rf .git/refs/original
+    rm -Rf .git/logs/
+
+    echo "Cleanup unnecessary files"
+    git gc --aggressive --prune=now
+
+    echo "Prune all unreachable objects"
+    git prune --expire now
+
+    #git push -f origin master
 end
 
 
@@ -121,6 +139,7 @@ starship init fish | source
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
-eval /usr/local/Caskroom/miniconda/base/bin/conda "shell.fish" "hook" $argv | source
+eval /opt/miniconda3/bin/conda "shell.fish" "hook" $argv | source
 # <<< conda initialize <<<
 
+thefuck --alias -r | source

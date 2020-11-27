@@ -16,10 +16,11 @@
 	whitespace = blank-at-eol,blank-at-eof,space-before-tab
 	pager = diff-so-fancy | bat
 
-#[http]
-#	proxy = socks5://localhost:1086
-[socks]
-	proxy = localhost:1086
+[http]
+	proxy = http://10.9.8.2:3128
+#[socks]
+# 	proxy = http://10.9.8.2:3128
+
 [color "diff-highlight"]
 	oldNormal = red bold
 	oldHighlight = red bold 52
@@ -33,13 +34,11 @@
 	new = green bold
 	whitespace = red reverse
 
-[includeIf "gitdir:~/PycharmProjects/"]
-	path = ~/.gitconfig-botpy
-[includeIf "gitdir:~/Dropbox/"]
-	path = ~/.gitconfig-botpy
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 	path = 
 [mergetool "sourcetree"]
 	cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
 	trustExitCode = true
+[commit]
+	template = /Users/itsneo1990/.stCommitMsg
